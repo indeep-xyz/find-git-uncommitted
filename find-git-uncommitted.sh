@@ -6,28 +6,36 @@
 
 echo_help() { # {{{5
   cat <<EOT
-$MY_NAME $MY_VERSION
+$MY_NAME (version $MY_VERSION)
 
 this shell-script is for Git.
-display the list of uncommitted Git project paths, found by \`find\` and \`git status\` commands.
+display the list of uncommitted Git project paths found by \`find\` and \`git status\` commands.
 
-USAGE =>
-  $MY_NAME [options] PATH
+USAGE=>
+$MY_NAME [options] PATH
 
-  PATH parameter is used by \`find\` command.
-  default is '/'.
+PATH parameter is used by \`find\` command.
+default is '/'.
 
-  options =>
-      e: file path for exclude.
-         the exclude function is run to \`find -path 'PATH' -prune\` command.
-         for example, if PATH is '/tmp/dirname' then exclude '/tmp/dirname/*' and include '/tmp/direname'.
-      E: enable to exclude file as default.
-    h,?: echo help message
-      v: verbose mode
-         if this option is true, display \`git status\` result.
-         if false (default), display only path.
+  OPTIONS =>
 
+  e PATH:
+    file path for exclude list.
+    syntax of the exclude list refer to './exclude.default.conf'.
 
+    the exclude function is run to \`find -path 'PATH(in list)' -prune\` command.
+    for example, if PATH is '/tmp/dirname' then exclude '/tmp/dirname/*' and include '/tmp/direname'.
+
+  E:
+    enable to exclude file as default.
+
+  h,?:
+    echo help message
+
+  v:
+    verbose mode
+    if this option is true, display \`git status\` result.
+    if false (default), display only path.
 EOT
 } # }}}5
 
