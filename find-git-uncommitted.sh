@@ -21,7 +21,7 @@ default is '/'.
 
   e PATH:
     file path for exclude list.
-    syntax of the exclude list refer to './exclude.default.conf'.
+    syntax of the exclude list refer to './$EXCLUDE_DEFAULT'.
 
     the exclude function is run to \`find -path 'PATH(in list)' -prune\` command.
     for example, if PATH is '/tmp/dirname' then exclude '/tmp/dirname/*' and include '/tmp/direname'.
@@ -79,6 +79,9 @@ MY_NAME=`basename $0 | sed 's/\.[^\.]*$//'`
 MY_DIR=`readlink -f $0 | sed 's!/[^/]*$!!'`
 MY_VERSION='1.0'
 
+# other
+EXCLUDE_DEFAULT='exclude-default.conf'
+
 # = command arguments
 # {{{2
 
@@ -89,7 +92,7 @@ while getopts e:Eh?v OPT
 do
   case $OPT in
     e)   EXCLUDE_PATH=$OPTARG;;
-    E)   EXCLUDE_PATH="${MY_DIR}/exclude.default.conf";;
+    E)   EXCLUDE_PATH="$MY_DIR/$EXCLUDE_DEFAULT";;
     h|?) echo_help && exit 0;;
     v)   FLAG_VERBOSE="on"
   esac
