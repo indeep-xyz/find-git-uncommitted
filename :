@@ -46,9 +46,6 @@ EOT
 # $1 ... path of exclude list
 make_prune() { # {{{5
 
-  # use RegExp of compat31
-  shopt -s compat31
-
   # check file size
   if [ -s "$1" ]; then
 
@@ -61,33 +58,23 @@ make_prune() { # {{{5
         $(cat "$1" | sed -e 's/^ *//' -e '/^#/d' -e '/^$/d')
     do
 
-      # if empty, continue
-      [ -z "$record" ] && continue
-
       # "name"
       # -name "name"
-      if [[ "$record" =~ ^[^/]\+$ ]]; then
+      if expr "$record" : "^[^/]*$" > /dev/null; then
         printf $record | sed 's,^\([^/]\+\)$, -name "\1" -prune -o,'
-        continue
-      fi
-
-      # "/dir/"
-      # -path "/" -name "dir"
-      if [[ "$record" =~ ^/[^/]+/?$ ]]; then
-        printf $record | sed 's,^/\([^/]\+\)/\?$, -path "/" -name "\1" -prune -o,'
         continue
       fi
 
       # "/dir/dir/"
       # -path "/dir/dir"
-      if expr "$record" : "^.*/$" > /dev/null; then
-        printf $record | sed 's,\([^/]*\)/$, -path "\1" -prune -o,'
+      if expr "$record" : "/$" > /dev/null; then
+        printf $record | sed 's,^\(.*\)/$, -path "\1" -prune -o,'
         continue
       fi
 
       # "/dir/dir/name"
       # -path "/dir/dir" -name "name"
-      printf $record | sed 's,\(.*\)/\([^/]\+\)$, -path "\1" -name "\2" -prune -o,'
+      printf $record | sed 's,\(.*/\)\([^/]\+\)$, -path "\1" -name "\2" -prune -o,'
     done
   fi
 } # }}}5
@@ -133,6 +120,7 @@ DIR_FIND=${1:-\/}
 PRUNE=`make_prune "$EXCLUDE_PATH"`
 
 echo -e "$PRUNE";
+# exit 11
 
 # debug
 #   echo "find \"$DIR_FIND\" $PRUNE -type d -name '.git'"
