@@ -36,7 +36,7 @@ default is '/'.
   v:
     verbose mode
     if this option is true then display \`find\` syntax, \`git status\` result.
-    if false (default), display only path.
+    if false then display only path. (default)
 EOT
 } # }}}5
 
