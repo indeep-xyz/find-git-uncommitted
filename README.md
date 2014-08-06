@@ -1,19 +1,10 @@
-# find-git-uncommitted
-
-## Summary
+find-git-uncommitted
+====
 
 this shell-script is for Git.
 display the list of uncommitted Git project paths found by `find` and `git status` commands.
 
-## Install
-
-`./install.sh`
-
-create a symlink to _/usr/local/bin/find-git-uncommitted_.
-
-when you want uninstall, remove the symlink.
-
-## Usage
+## USAGE
 
 `find-git-uncommitted [options] PATH`
 
@@ -46,15 +37,14 @@ verbose mode
 if this option is true, display `git status` result.
 if false (default), display only path.
 
-## Notes
+## INSTALL
 
-this petit shell-script was made for the purpose of my study.
+`./install.sh`
 
-I'm glad if you find bugs or, and ugliness of the syntax of shell scripts, the grotesqueness of how to use GitHub, you and give you advice Issues.
+create a symlink to _/usr/local/bin/find-git-uncommitted_.
 
+when you want uninstall, remove the symlink.
 
+## AUTHOR
 
-## Author
-
-http://indeep.xyz/
-
+[indeep-xyz](http://indeep.xyz/)
