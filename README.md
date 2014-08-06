@@ -24,15 +24,16 @@ default is '/'.
 
 #### e PATH
 
-file path for exclude list.
-syntax of the exclude list refer to './exclude-default.conf'.
+file path for the exclude list.
+syntax of the exclude list refer to './exclude.conf'.
 
-the exclude function is run to `find -path 'PATH(in list)' -prune` command.
+the exclude function is run to `find -path 'RegExp(in list)' -prune` command.
 for example, if PATH is '/tmp/dirname' then exclude '/tmp/dirname/*' and include '/tmp/direname'.
 
 #### E
 
-enable to exclude file as default.
+load the exclude file as default.
+that file path is _exclude.conf_ in the same directory as _find-git-uncommitted_ .
 
 #### h,?
 

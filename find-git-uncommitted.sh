@@ -20,76 +20,53 @@ default is '/'.
   OPTIONS =>
 
   e PATH:
-    file path for exclude list.
+    file path for the exclude list.
     syntax of the exclude list refer to './$EXCLUDE_FILE'.
 
-    the exclude function is run to \`find -path 'PATH(in list)' -prune\` command.
-    for example, if PATH is '/tmp/dirname' then exclude '/tmp/dirname/*' and include '/tmp/direname'.
+    the exclude function is run to \`find -regex 'RegExp(in list)' -prune\` command.
+    for example, if RegExp is '/tmp/dirname' then exclude '/tmp/dirname/*' and include '/tmp/direname'.
 
   E:
-    enable to exclude file as default.
+    load the exclude file as default.
+    that file path is '$EXCLUDE_FILE' in the same directory as \`find-git-uncommitted\`.
 
   h,?:
     echo help message
 
   v:
     verbose mode
-    if this option is true, display \`git status\` result.
+    if this option is true then display \`find\` syntax, \`git status\` result.
     if false (default), display only path.
 EOT
 } # }}}5
 
 # = =
-# make prune text for `find`
+# create prune text for `find`
 #
 # arg
 # $1 ... path of exclude list
-make_prune() { # {{{5
+create_prune() { # {{{5
 
-  # use RegExp of compat31
-  shopt -s compat31
+  local PRUNE=
 
   # check file size
   if [ -s "$1" ]; then
 
-    # if file is enabled, make prune options
-
-    # loop
-    # - read file
-    # - trim leading whitespace, delete comment/empty line
-    for record in \
-        $(cat "$1" | sed -e 's/^ *//' -e '/^#/d' -e '/^$/d')
-    do
-
-      # if empty, continue
-      [ -z "$record" ] && continue
-
-      # "name"
-      # -name "name"
-      if [[ "$record" =~ ^[^/]\+$ ]]; then
-        printf $record | sed 's,^\([^/]\+\)$, -name "\1" -prune -o,'
-        continue
-      fi
-
-      # "/dir/"
-      # -path "/" -name "dir"
-      if [[ "$record" =~ ^/[^/]+/?$ ]]; then
-        printf $record | sed 's,^/\([^/]\+\)/\?$, -path "/" -name "\1" -prune -o,'
-        continue
-      fi
-
-      # "/dir/dir/"
-      # -path "/dir/dir"
-      if expr "$record" : "^.*/$" > /dev/null; then
-        printf $record | sed 's,\([^/]*\)/$, -path "\1" -prune -o,'
-        continue
-      fi
-
-      # "/dir/dir/name"
-      # -path "/dir/dir" -name "name"
-      printf $record | sed 's,\(.*\)/\([^/]\+\)$, -path "\1" -name "\2" -prune -o,'
-    done
+    # create prune
+    # - sed
+    # - - trim leading whitespace, delete comment/empty line, create prune text
+    # - awk
+    # - - convert line break to whitespace
+    PRUNE=$(cat "$1" \
+          | sed -e 's/^ *//' \
+                -e '/^#/d' \
+                -e '/^$/d' \
+                -e 's,\(.*\) *,-regex "\1" -prune -o,' \
+          | awk -F\n -v ORS=' ' '{print}'
+        )
   fi
+
+  printf "%s" "$PRUNE"
 } # }}}5
 
 # }}}1 functions
@@ -99,8 +76,8 @@ make_prune() { # {{{5
 # {{{1
 
 # basics
-MY_NAME=`basename $0 | sed 's/\.[^\.]*$//'`
-MY_DIR=`readlink -f $0 | sed 's!/[^/]*$!!'`
+MY_NAME=`basename "$0" | sed 's/\.[^\.]*$//'`
+MY_DIR=`readlink -f "$0" | sed 's!/[^/]*$!!'`
 MY_VERSION='1.0'
 
 # other
@@ -115,10 +92,10 @@ EXCLUDE_FILE='exclude.conf'
 while getopts e:Eh?v OPT
 do
   case $OPT in
-    e)   EXCLUDE_PATH=$OPTARG;;
-    E)   EXCLUDE_PATH="$MY_DIR/$EXCLUDE_FILE";;
-    h|?) echo_help && exit 0;;
-    v)   FLAG_VERBOSE="on"
+    e)    EXCLUDE_PATH=$OPTARG;;
+    E)    EXCLUDE_PATH="$MY_DIR/$EXCLUDE_FILE";;
+    h|\?) echo_help && exit 0;;
+    v)    FLAG_VERBOSE="on";;
   esac
 done
 
@@ -129,14 +106,11 @@ shift $((OPTIND - 1))
 # directory path for find command
 DIR_FIND=${1:-\/}
 
-# make for `find -prune` text
-PRUNE=`make_prune "$EXCLUDE_PATH"`
+# create for `find -prune` text
+PRUNE=`create_prune "$EXCLUDE_PATH"`
 
-echo -e "$PRUNE";
-
-# debug
-#   echo "find \"$DIR_FIND\" $PRUNE -type d -name '.git'"
-#   exit 22
+# create `find` sysntax
+FIND_SYNTAX="`echo -E "find \"$DIR_FIND\" $PRUNE -type d -name '.git' "`"
 
 # }}}2 = command arguments
 # }}}1 global variables
@@ -145,24 +119,32 @@ echo -e "$PRUNE";
 # main
 # {{{1
 
-eval find "$DIR_FIND" $PRUNE -type d -name '.git' | sed 's#/\.git$##' \
-| while read DIR_ROOT
+# if verbose mode, echo `find` syntax
+[ -n "$FLAG_VERBOSE" ] && echo -e "$FIND_SYNTAX\n"
+
+# loop by `find` result
+eval $FIND_SYNTAX | while read dir_git
 do
 
-  # if .git directory is nothing, continue
-  # - for `find -prune`
-  [ ! -d "$DIR_ROOT/.git" ] && continue
+  # guard
+  # - if Git project is is disabled, continue
+  [ ! -s "$dir_git/HEAD" ] && continue
 
-  # get & check `git status`
-  STAT="$(cd "$DIR_ROOT" && git status)"
-  STAT_CHECK="$(echo -e "$STAT" | sed -n '${
+  # directry of Git work tree
+  dir_worktree="`echo "$dir_git" | sed 's!/\.git!!'`"
+
+  # get `git status`
+  stat="$(cd "$dir_worktree" && git status)"
+
+  # check `git status`
+  stat_check="$(echo -e "$stat" | sed -n '${
         /nothing to commit, working directory clean/p
       }')"
 
   # if not "nothing to commit", echo path and etc
-  if [ "" = "$STAT_CHECK" ]; then
-    echo "$DIR_ROOT"
-    [ -n "$FLAG_VERBOSE" ] && echo -e "$STAT"
+  if [ "" = "$stat_check" ]; then
+    echo "$dir_worktree"
+    [ -n "$FLAG_VERBOSE" ] && echo -e "$stat"
   fi
 done
 
