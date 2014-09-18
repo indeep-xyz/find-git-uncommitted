@@ -4,48 +4,46 @@ find-git-uncommitted
 this shell-script is for Git.
 display the list of uncommitted Git project paths found by `find` and `git status` commands.
 
-## USAGE
+## Usage
 
-`find-git-uncommitted [options] PATH`
+```
+find-git-uncommitted [Options] [PATH]
+```
 
 PATH parameter is used by `find` command.
-default is '/'.
+
+default value is _/_ .
 
 ### Options
 
-#### e PATH
+#### -e PATH
 
-file path for the exclude list.
-syntax of the exclude list refer to './exclude.conf'.
+file path for the exclude list. syntax of the exclude list refer to _exclude.conf_ .
 
 the exclude function is run to `find -path 'RegExp(in list)' -prune` command.
-for example, if PATH is '/tmp/dirname' then exclude '/tmp/dirname/*' and include '/tmp/direname'.
 
-#### E
+#### -E
 
-load the exclude file as default.
-that file path is _exclude.conf_ in the same directory as _find-git-uncommitted_ .
+load the exclude file as default. (_exclude.conf_)
 
-#### h,?
+#### -h
 
-echo help message
+display help message.
 
-#### v
+#### -v
 
-verbose mode
+verbose mode.
 
-if this option is true then display \`find\` syntax, \`git status\` result.
+if passed this option, display `find` syntax, `git status` result.
 
-if false then display only path. (default)
+## Install
 
-## INSTALL
-
-`./install.sh`
+```
+./install.sh
+```
 
 create a symlink to _/usr/local/bin/find-git-uncommitted_.
 
-when you want uninstall, remove the symlink.
-
-## AUTHOR
+## Author
 
 [indeep-xyz](http://indeep.xyz/)
